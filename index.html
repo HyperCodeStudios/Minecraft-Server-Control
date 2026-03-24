@@ -55,46 +55,36 @@
       transition: 0.2s;
     }
 
-    .btn-login {
-      background: #3b82f6;
-      color: white;
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
-    .btn-login:hover {
-      background: #2563eb;
+    .btn-login { background: #3b82f6; }
+    .btn-login:hover { background: #2563eb; }
+
+    .btn-start { background: #22c55e; }
+    .btn-start:hover { background: #16a34a; }
+
+    .btn-stop { background: #ef4444; }
+    .btn-stop:hover { background: #dc2626; }
+
+    .btn-restart { background: #f59e0b; }
+    .btn-restart:hover { background: #d97706; }
+
+    .btn-logout { background: #64748b; }
+    .btn-logout:hover { background: #475569; }
+
+    #status {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
     }
 
-    .btn-start {
-      background: #22c55e;
-      color: white;
-    }
-
-    .btn-start:hover {
-      background: #16a34a;
-    }
-
-    .btn-stop {
-      background: #ef4444;
-      color: white;
-    }
-
-    .btn-stop:hover {
-      background: #dc2626;
-    }
-
-    .btn-logout {
-      background: #64748b;
-      color: white;
-    }
-
-    .btn-logout:hover {
-      background: #475569;
-    }
-
-    #panel button {
-      margin-top: 10px;
-    }
-
+    .online { color: #22c55e; }
+    .offline { color: #ef4444; }
+    .starting { color: orange; }
+    .stopping { color: orange; }
   </style>
 </head>
 
@@ -112,9 +102,11 @@
   </div>
 
   <div id="panel" style="display:none;">
-    <h3>Server Control</h3>
-    <button class="btn-start" onclick="startServer()">Start Server</button>
-    <button class="btn-stop" onclick="stopServer()">Stop Server</button>
+    <h3 id="status">Status: ...</h3>
+
+    <button class="btn-start" id="startBtn" onclick="startServer()">Start Server</button>
+    <button class="btn-stop" id="stopBtn" onclick="stopServer()">Stop Server</button>
+    <button class="btn-restart" onclick="restartServer()">Restart</button>
     <button class="btn-logout" onclick="logout()">Logout</button>
   </div>
 
@@ -122,7 +114,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -138,6 +130,10 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const auth = getAuth(app);
+
+  const statusEl = document.getElementById("status");
+  const startBtn = document.getElementById("startBtn");
+  const stopBtn = document.getElementById("stopBtn");
 
   window.login = async function() {
     const email = document.getElementById("email").value;
@@ -157,6 +153,10 @@
     set(ref(db, 'server/status'), 'stop');
   }
 
+  window.restartServer = function() {
+    set(ref(db, 'server/status'), 'restart');
+  }
+
   onAuthStateChanged(auth, (user) => {
     if (user) {
       document.getElementById("auth").style.display = "none";
@@ -167,8 +167,29 @@
     }
   });
 
-  window.startServer = startServer;
-  window.stopServer = stopServer;
+  // 🔥 Live Status Listener
+  onValue(ref(db, 'server/status'), (snapshot) => {
+    const status = snapshot.val();
+
+    statusEl.textContent = "Status: " + status;
+    statusEl.className = status;
+
+    if (status === "offline") {
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    if (status === "online") {
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    }
+
+    if (status === "starting" || status === "stopping") {
+      startBtn.disabled = true;
+      stopBtn.disabled = true;
+    }
+  });
+
 </script>
 
 </body>
