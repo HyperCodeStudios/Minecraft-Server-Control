@@ -2,137 +2,194 @@
 <html>
 <head>
   <title>Minecraft Control</title>
+
   <style>
     body {
-      font-family: Arial;
-      background: #0f172a;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #020617);
       color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      width: 320px;
+      backdrop-filter: blur(10px);
+    }
+
+    h1, h3 {
       text-align: center;
+      margin-bottom: 20px;
     }
 
-    #panel, #auth {
-      margin-top: 50px;
-      padding: 20px;
-      background: #1e293b;
-      border-radius: 12px;
-      width: 300px;
-      margin-left: auto;
-      margin-right: auto;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
-    }
-
-    input, button {
-      display: block;
+    input {
       width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 10px;
       border: none;
+      outline: none;
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    input::placeholder {
+      color: #aaa;
     }
 
     button {
-      background: #3b82f6;
-      color: white;
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
     }
 
-    button:hover {
-      background: #2563eb;
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
+
+    .btn-login { background: #3b82f6; }
+    .btn-login:hover { background: #2563eb; }
+
+    .btn-start { background: #22c55e; }
+    .btn-start:hover { background: #16a34a; }
+
+    .btn-stop { background: #ef4444; }
+    .btn-stop:hover { background: #dc2626; }
+
+    .btn-restart { background: #f59e0b; }
+    .btn-restart:hover { background: #d97706; }
+
+    .btn-logout { background: #64748b; }
+    .btn-logout:hover { background: #475569; }
 
     #status {
-      margin-top: 10px;
+      text-align: center;
       font-weight: bold;
+      margin-bottom: 10px;
     }
 
     .online { color: #22c55e; }
     .offline { color: #ef4444; }
-    .starting { color: #f59e0b; }
-    .stopping { color: #f59e0b; }
+    .starting { color: orange; }
+    .stopping { color: orange; }
   </style>
 </head>
+
 <body>
 
-<h1>Minecraft Server Control</h1>
+<div class="card">
 
-<div id="auth">
-  <h3>Login</h3>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-</div>
+  <h1>Control Panel</h1>
 
-<div id="panel" style="display:none;">
-  <h3>Control Panel</h3>
+  <div id="auth">
+    <h3>Login</h3>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button class="btn-login" onclick="login()">Login</button>
+  </div>
 
-  <div id="status">Status: loading...</div>
+  <div id="panel" style="display:none;">
+    <h3 id="status">Status: ...</h3>
 
-  <button onclick="startServer()">Start</button>
-  <button onclick="stopServer()">Stop</button>
-  <button onclick="restartServer()">Restart</button>
-  <button onclick="logout()">Logout</button>
+    <button class="btn-start" id="startBtn" onclick="startServer()">Start Server</button>
+    <button class="btn-stop" id="stopBtn" onclick="stopServer()">Stop Server</button>
+    <button class="btn-restart" onclick="restartServer()">Restart</button>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "minecraft-server-control-1c905.firebaseapp.com",
-  databaseURL: "https://minecraft-server-control-1c905-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "minecraft-server-control-1c905",
-  storageBucket: "minecraft-server-control-1c905.firebasestorage.app",
-  messagingSenderId: "222712254483",
-  appId: "1:222712254483:web:a27617a34af2578eb12fe6"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyCGah_H5latYINeeoFGfEeCf7mswlYC1xk",
+    authDomain: "minecraft-server-control-1c905.firebaseapp.com",
+    databaseURL: "https://minecraft-server-control-1c905-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "minecraft-server-control-1c905",
+    storageBucket: "minecraft-server-control-1c905.firebasestorage.app",
+    messagingSenderId: "222712254483",
+    appId: "1:222712254483:web:a27617a34af2578eb12fe6"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
 
-window.login = async function() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  await signInWithEmailAndPassword(auth, email, password);
-}
+  const statusEl = document.getElementById("status");
+  const startBtn = document.getElementById("startBtn");
+  const stopBtn = document.getElementById("stopBtn");
 
-window.logout = function() {
-  signOut(auth);
-}
-
-window.startServer = function() {
-  set(ref(db, 'server/command'), 'start');
-}
-
-window.stopServer = function() {
-  set(ref(db, 'server/command'), 'stop');
-}
-
-window.restartServer = function() {
-  set(ref(db, 'server/command'), 'restart');
-}
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    document.getElementById("auth").style.display = "none";
-    document.getElementById("panel").style.display = "block";
-  } else {
-    document.getElementById("auth").style.display = "block";
-    document.getElementById("panel").style.display = "none";
+  window.login = async function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    await signInWithEmailAndPassword(auth, email, password);
   }
-});
 
-const statusRef = ref(db, 'server/status');
+  window.logout = function() {
+    signOut(auth);
+  }
 
-onValue(statusRef, (snapshot) => {
-  const status = snapshot.val();
-  const el = document.getElementById("status");
-  el.innerText = "Status: " + status;
+  window.startServer = function() {
+    set(ref(db, 'server/status'), 'start');
+  }
 
-  el.className = status;
-});
+  window.stopServer = function() {
+    set(ref(db, 'server/status'), 'stop');
+  }
+
+  window.restartServer = function() {
+    set(ref(db, 'server/status'), 'restart');
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById("auth").style.display = "none";
+      document.getElementById("panel").style.display = "block";
+    } else {
+      document.getElementById("auth").style.display = "block";
+      document.getElementById("panel").style.display = "none";
+    }
+  });
+
+  // 🔥 Live Status Listener
+  onValue(ref(db, 'server/status'), (snapshot) => {
+    const status = snapshot.val();
+
+    statusEl.textContent = "Status: " + status;
+    statusEl.className = status;
+
+    if (status === "offline") {
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    if (status === "online") {
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    }
+
+    if (status === "starting" || status === "stopping") {
+      startBtn.disabled = true;
+      stopBtn.disabled = true;
+    }
+  });
+
 </script>
 
 </body>
