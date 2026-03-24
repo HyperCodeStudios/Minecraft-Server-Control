@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Minecraft Control</title>
+</head>
+<body>
+
+<h1>Server Control</h1>
+
+<div id="auth">
+  <h3>Login</h3>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <button onclick="register()">Register</button>
+</div>
+
+<div id="panel" style="display:none;">
+  <h3>Control Panel</h3>
+  <button onclick="startServer()">Start</button>
+  <button onclick="stopServer()">Stop</button>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCGah_H5latYINeeoFGfEeCf7mswlYC1xk",
+    authDomain: "minecraft-server-control-1c905.firebaseapp.com",
+    databaseURL: "https://minecraft-server-control-1c905-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "minecraft-server-control-1c905",
+    storageBucket: "minecraft-server-control-1c905.firebasestorage.app",
+    messagingSenderId: "222712254483",
+    appId: "1:222712254483:web:a27617a34af2578eb12fe6"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+
+  window.login = async function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    await signInWithEmailAndPassword(auth, email, password);
+  }
+
+  window.register = async function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    await createUserWithEmailAndPassword(auth, email, password);
+  }
+
+  window.logout = function() {
+    signOut(auth);
+  }
+
+  window.startServer = function() {
+    set(ref(db, 'server/status'), 'start');
+  }
+
+  window.stopServer = function() {
+    set(ref(db, 'server/status'), 'stop');
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById("auth").style.display = "none";
+      document.getElementById("panel").style.display = "block";
+    } else {
+      document.getElementById("auth").style.display = "block";
+      document.getElementById("panel").style.display = "none";
+    }
+  });
+
+  window.startServer = startServer;
+  window.stopServer = stopServer;
+</script>
+
+</body>
+</html>
